@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from . import models, database, ai_service
 
@@ -11,6 +12,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# --- CORS CONFIGURATION (Enables Angular communication) ---
+origins = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# ---------------------------------------------------------
+
 @app.get("/")
 def read_root():
     return {"status": "Forenode AI Engine is running"}
@@ -21,14 +37,27 @@ def predict_agricultural_demand(
     db: Session = Depends(database.get_db)
 ):
     try:
+        # Check if product exists, create if missing to satisfy Foreign Key constraint
+        product = db.query(models.Product).filter(models.Product.id == request.product_id).first()
+        if not product:
+            new_product = models.Product(
+                id=request.product_id, 
+                name=f"Regional Crop #{request.product_id}", 
+                category="Simulated Data"
+            )
+            db.add(new_product)
+            db.commit()
+
         month = request.target_date.month
         
+        # Execute Scikit-Learn prediction pipeline
         predicted_kg = ai_service.ai_model_instance.predict_demand(
             month=month,
             temp=request.forecast_temperature_c,
             rain=request.forecast_rainfall_mm
         )
         
+        # Dynamic confidence score calculation based on weather parameters
         confidence = 0.88 if request.forecast_rainfall_mm < 70 else 0.72
 
         db_prediction = models.DemandPrediction(
