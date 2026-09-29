@@ -5,13 +5,15 @@ import { Observable } from 'rxjs';
 export interface PredictionRequest {
   product_id: number;
   target_date: string;
-  forecast_temperature_c: number;
-  forecast_rainfall_mm: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface PredictionResponse {
   product_id: number;
   target_date: string;
+  forecast_temperature_c: number;
+  forecast_rainfall_mm: number;
   predicted_demand_kg: number;
   confidence_score: number;
 }
@@ -21,7 +23,6 @@ export interface PredictionResponse {
 })
 export class DashboardService {
   private readonly http = inject(HttpClient);
-  // Endpoint URL pointing to our FastAPI server
   private readonly API_URL = 'http://localhost:8000/api/v1/predictions/demand';
 
   getDemandForecast(payload: PredictionRequest): Observable<PredictionResponse> {

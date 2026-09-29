@@ -11,7 +11,7 @@
           Forenode <span class="text-indigo-600 dark:text-indigo-400">AI</span>
         </h1>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Predictive Supply-Demand Matching Engine
+          Real-Time Predictive Supply-Demand Matching Engine (Nariño Nodes)
         </p>
       </div>
     </div>
@@ -28,8 +28,8 @@
       (click)="fetchPrediction()"
       [disabled]="isLoading()"
       class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white transition-all rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-600">
-      <span *ngIf="isLoading()">Running Predictive Model...</span>
-      <span *ngIf="!isLoading()">Execute Demand Forecast</span>
+      <span *ngIf="isLoading()">Fetching Open-Meteo & Running AI...</span>
+      <span *ngIf="!isLoading()">Execute Real-Time Forecast</span>
     </button>
   </section>
 
@@ -41,7 +41,7 @@
   <!-- AI Results Card -->
   <div *ngIf="forecastData() as forecast" class="p-6 transition-all duration-300 bg-white border border-slate-200 shadow-sm rounded-xl dark:bg-slate-800 dark:border-slate-700">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Forecast Analysis Results</h2>
+      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Live Forecast Analysis & Climate Integration</h2>
       <div class="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 rounded-full border border-indigo-100 dark:border-indigo-800">
         <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
         <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300">
@@ -50,10 +50,15 @@
       </div>
     </div>
     
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
       <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600/50">
-        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Target Date</p>
-        <p class="mt-2 text-xl font-medium text-slate-800 dark:text-slate-200">{{ forecast.target_date | date:'mediumDate' }}</p>
+        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Live Temperature</p>
+        <p class="mt-2 text-2xl font-bold text-slate-800 dark:text-slate-200">{{ forecast.forecast_temperature_c }} °C</p>
+      </div>
+
+      <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600/50">
+        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Precipitation</p>
+        <p class="mt-2 text-2xl font-bold text-slate-800 dark:text-slate-200">{{ forecast.forecast_rainfall_mm }} mm</p>
       </div>
       
       <div class="p-5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 transform transition hover:scale-105">
@@ -64,8 +69,27 @@
       </div>
       
       <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600/50">
-        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Product Node ID</p>
-        <p class="mt-2 text-xl font-medium text-slate-800 dark:text-slate-200">#{{ forecast.product_id }}</p>
+        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Node ID</p>
+        <p class="mt-2 text-2xl font-bold text-slate-800 dark:text-slate-200">#{{ forecast.product_id }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Worker Insights (Advanced Web Programming Feature) -->
+  <div *ngIf="workerInsights() as insights" class="mt-6 p-6 transition-all duration-300 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 shadow-sm rounded-xl">
+    <h3 class="text-md font-bold text-emerald-800 dark:text-emerald-300 mb-3">⚙️ Web Worker Supply Chain Optimization (Async Background Thread)</h3>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
+      <div>
+        <span class="text-slate-500 dark:text-slate-400">Recommended Storage:</span>
+        <p class="font-semibold text-emerald-700 dark:text-emerald-400">{{ insights.recommendedStorageTon | number:'1.2-2' }} Tons</p>
+      </div>
+      <div>
+        <span class="text-slate-500 dark:text-slate-400">Waste Reduction Est.:</span>
+        <p class="font-semibold text-emerald-700 dark:text-emerald-400">{{ insights.estimatedWasteReductionPercentage }}%</p>
+      </div>
+      <div>
+        <span class="text-slate-500 dark:text-slate-400">Logistics Risk Index:</span>
+        <p class="font-semibold text-emerald-700 dark:text-emerald-400">{{ insights.supplyChainRiskIndex }}</p>
       </div>
     </div>
   </div>
