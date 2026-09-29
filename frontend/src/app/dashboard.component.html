@@ -1,0 +1,73 @@
+<div class="min-h-screen p-8 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans">
+  
+  <!-- Header Section -->
+  <header class="flex items-center justify-between pb-6 mb-8 border-b border-slate-200 dark:border-slate-700">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-600 text-white font-bold text-xl shadow-md">
+        F
+      </div>
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          Forenode <span class="text-indigo-600 dark:text-indigo-400">AI</span>
+        </h1>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Predictive Supply-Demand Matching Engine
+        </p>
+      </div>
+    </div>
+    <button 
+      (click)="toggleTheme()"
+      class="px-4 py-2 text-sm font-medium transition-all bg-white border rounded-lg shadow-sm border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700 focus:ring-2 focus:ring-indigo-500">
+      🌓 Toggle {{ isDarkMode() ? 'Light' : 'Dark' }} Mode
+    </button>
+  </header>
+
+  <!-- Control Panel -->
+  <section class="mb-8">
+    <button 
+      (click)="fetchPrediction()"
+      [disabled]="isLoading()"
+      class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white transition-all rounded-lg shadow-md bg-indigo-600 hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-600">
+      <span *ngIf="isLoading()">Running Predictive Model...</span>
+      <span *ngIf="!isLoading()">Execute Demand Forecast</span>
+    </button>
+  </section>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage()" class="p-4 mb-6 border-l-4 border-red-500 rounded-r-lg bg-red-50 dark:bg-red-900/30">
+    <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ errorMessage() }}</p>
+  </div>
+
+  <!-- AI Results Card -->
+  <div *ngIf="forecastData() as forecast" class="p-6 transition-all duration-300 bg-white border border-slate-200 shadow-sm rounded-xl dark:bg-slate-800 dark:border-slate-700">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Forecast Analysis Results</h2>
+      <div class="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 rounded-full border border-indigo-100 dark:border-indigo-800">
+        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+        <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+          Confidence: {{ forecast.confidence_score * 100 }}%
+        </span>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600/50">
+        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Target Date</p>
+        <p class="mt-2 text-xl font-medium text-slate-800 dark:text-slate-200">{{ forecast.target_date | date:'mediumDate' }}</p>
+      </div>
+      
+      <div class="p-5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 transform transition hover:scale-105">
+        <p class="text-xs font-semibold tracking-wider text-indigo-600 uppercase dark:text-indigo-400">Predicted Demand</p>
+        <p class="mt-2 text-3xl font-bold text-indigo-700 dark:text-indigo-300">
+          {{ forecast.predicted_demand_kg | number:'1.0-0' }} <span class="text-lg font-medium text-indigo-500">kg</span>
+        </p>
+      </div>
+      
+      <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600/50">
+        <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">Product Node ID</p>
+        <p class="mt-2 text-xl font-medium text-slate-800 dark:text-slate-200">#{{ forecast.product_id }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>
