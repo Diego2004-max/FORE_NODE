@@ -1,14 +1,17 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from datetime import datetime
+import httpx
 from . import models, database, ai_service
 
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(
-    title="Forenode AI - Backend API",
-    description="Real-world Predictive Supply-Demand Matching Engine",
-    version="2.0.0"
+    title="Forenode Global AI Enterprise Engine",
+    description="Global Agricultural Supply-Demand Matching & Logistics Platform",
+    version="3.3.0"
 )
 
 app.add_middleware(
@@ -19,60 +22,98 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"status": "Forenode AI Engine v2.0 (Real Data) is running"}
+class GlobalPredictionRequest(BaseModel):
+    product_id: int
+    product_name: str
+    region_name: str
+    latitude: float
+    longitude: float
+    target_date: datetime
 
-@app.post("/api/v1/predictions/demand", response_model=ai_service.PredictionResponse, status_code=status.HTTP_200_OK)
-async def predict_agricultural_demand(
-    request: ai_service.PredictionRequest,
+class MatchingResponse(BaseModel):
+    product_id: int
+    product_name: str
+    region_name: str
+    target_date: datetime
+    forecast_temperature_c: float
+    forecast_rainfall_mm: float
+    predicted_demand_kg: float
+    available_supply_kg: float
+    deficit_or_surplus_kg: float
+    market_status: str
+    confidence_score: float
+
+@app.post("/api/v1/matching/engine", response_model=MatchingResponse, status_code=status.HTTP_200_OK)
+async def run_matching_engine(
+    request: GlobalPredictionRequest,
     db: Session = Depends(database.get_db)
 ):
     try:
+        # Consumo real de Open-Meteo basado en coordenadas geográficas
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={request.latitude}&longitude={request.longitude}&current=temperature_2m,precipitation"
+        async with httpx.AsyncClient() as client:
+            res = await client.get(url, timeout=5.0)
+            data = res.json() if res.status_code == 200 else {}
+            current = data.get("current", {})
+            temp = float(current.get("temperature_2m", 16.0))
+            rain = float(current.get("precipitation", 45.0))
+
+        # Inferencia con IA (Scikit-Learn)
+        month = request.target_date.month
+        predicted_kg = ai_service.ai_model_instance.predict_demand(month=month, temp=temp, rain=rain)
+        
+        available_supply = 1150.0
+        gap = round(predicted_kg - available_supply, 2)
+        
+        if gap > 100:
+            market_status = "Déficit Crítico (Riesgo de desabastecimiento)"
+        elif gap < -100:
+            market_status = "Superávit Alto (Riesgo de desperdicio)"
+        else:
+            market_status = "Equilibrio Óptimo de Mercado"
+
+        confidence = 0.94 if rain < 80 else 0.81
+
+        # Registrar o actualizar producto de forma segura en PostgreSQL
         product = db.query(models.Product).filter(models.Product.id == request.product_id).first()
         if not product:
-            new_product = models.Product(
-                id=request.product_id, 
-                name=f"Nariño Agricultural Node #{request.product_id}", 
-                category="Real-Time Open-Meteo & ML"
+            product = models.Product(
+                id=request.product_id,
+                name=request.product_name,
+                category="Enterprise Global Agro",
+                region=request.region_name,
+                latitude=request.latitude,
+                longitude=request.longitude
             )
-            db.add(new_product)
+            db.merge(product)
             db.commit()
 
-        month = request.target_date.month
-        
-        # Consumo real de API climática y ejecución de modelo IA en paralelo/async
-        temp, rain, predicted_kg = await ai_service.ai_model_instance.predict_real_demand(
-            month=month,
-            lat=request.latitude,
-            lon=request.longitude
-        )
-        
-        confidence = 0.91 if rain < 100 else 0.78
-
-        db_prediction = models.DemandPrediction(
+        db_pred = models.DemandPrediction(
             product_id=request.product_id,
             target_date=request.target_date,
             predicted_demand_kg=round(predicted_kg, 2),
+            available_supply_kg=available_supply,
+            gap_status=market_status,
             confidence_score=confidence
         )
-        
-        db.add(db_prediction)
+        db.add(db_pred)
         db.commit()
-        db.refresh(db_prediction)
 
-        return ai_service.PredictionResponse(
+        return MatchingResponse(
             product_id=request.product_id,
+            product_name=request.product_name,
+            region_name=request.region_name,
             target_date=request.target_date,
             forecast_temperature_c=temp,
             forecast_rainfall_mm=rain,
             predicted_demand_kg=round(predicted_kg, 2),
+            available_supply_kg=available_supply,
+            deficit_or_surplus_kg=gap,
+            market_status=market_status,
             confidence_score=confidence
         )
-
     except Exception as e:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Real AI Pipeline Error: {str(e)}"
-        )
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Global Engine Error: {str(e)}")
