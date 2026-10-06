@@ -1,24 +1,57 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DashboardService, PredictionResponse } from './dashboard.service';
+import { FormsModule } from '@angular/forms';
+import { DashboardService, MatchingResponse } from './dashboard.service';
+
+interface RegionNode {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+}
+
+interface CropProduct {
+  id: number;
+  name: string;
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnDestroy {
   private readonly dashboardService = inject(DashboardService);
   private worker: Worker | null = null;
-  
-  public forecastData = signal<PredictionResponse | null>(null);
+  public logout = output<boolean>();
+
+  public regions: RegionNode[] = [
+    { name: 'Pasto (Zona Andina / Acopio Central)', country: 'Colombia', lat: 1.2136, lon: -77.2811 },
+    { name: 'Ipiales (Frontera / Corredor Sur)', country: 'Colombia', lat: 0.8248, lon: -77.5846 },
+    { name: 'Túquerres (Meseta / Zona Papa y Leche)', country: 'Colombia', lat: 1.0844, lon: -77.6236 },
+    { name: 'La Unión (Norte de Nariño / Frutales)', country: 'Colombia', lat: 1.6058, lon: -77.1331 },
+    { name: 'Buesaco (Cañón del Juanambú / Café)', country: 'Colombia', lat: 1.3703, lon: -77.1583 }
+  ];
+
+  public crops: CropProduct[] = [
+    { id: 1, name: 'Café de Altura Arábigo' },
+    { id: 2, name: 'Papa Pastusa / Industrial' },
+    { id: 3, name: 'Lulo Andino Orgánico' },
+    { id: 4, name: 'Quinoa Real de Nariño' }
+  ];
+
+  public selectedRegion = signal<RegionNode>(this.regions[0]);
+  public selectedCrop = signal<CropProduct>(this.crops[0]);
+
+  public matchingData = signal<MatchingResponse | null>(null);
   public workerInsights = signal<any>(null);
   public isLoading = signal<boolean>(false);
   public errorMessage = signal<string | null>(null);
-  public isDarkMode = signal<boolean>(false);
+  public isDarkMode = signal<boolean>(true);
 
   constructor() {
+    document.documentElement.classList.add('dark');
     if (typeof Worker !== 'undefined') {
       try {
         this.worker = new Worker(new URL('./dashboard.worker', import.meta.url), { type: 'module' });
@@ -27,47 +60,53 @@ export class DashboardComponent implements OnDestroy {
           this.isLoading.set(false);
         };
       } catch (e) {
-        console.warn('Worker initialization failed', e);
+        console.warn('Worker init error', e);
       }
     }
   }
 
   public toggleTheme(): void {
-    this.isDarkMode.update(mode => !mode);
+    this.isDarkMode.update(m => !m);
+    const htmlEl = document.documentElement;
     if (this.isDarkMode()) {
-      document.documentElement.classList.add('dark');
+      htmlEl.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      htmlEl.classList.remove('dark');
     }
   }
 
-  public fetchPrediction(): void {
+  public executeMatchingEngine(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
     this.workerInsights.set(null);
 
-    // Coordenadas reales de Pasto, Nariño para la API climática
     const payload = {
-      product_id: 1,
-      target_date: new Date().toISOString(),
-      latitude: 1.2136,
-      longitude: -77.2811
+      product_id: this.selectedCrop().id,
+      product_name: this.selectedCrop().name,
+      region_name: this.selectedRegion().name,
+      latitude: this.selectedRegion().lat,
+      longitude: this.selectedRegion().lon,
+      target_date: new Date().toISOString()
     };
 
-    this.dashboardService.getDemandForecast(payload).subscribe({
-      next: (response) => {
-        this.forecastData.set(response);
+    this.dashboardService.runMatchingEngine(payload).subscribe({
+      next: (res) => {
+        this.matchingData.set(res);
         if (this.worker) {
-          this.worker.postMessage(response);
+          this.worker.postMessage(res);
         } else {
           this.isLoading.set(false);
         }
       },
       error: () => {
-        this.errorMessage.set('Forenode Real-Time AI Engine failed to respond. Verify backend connection.');
+        this.errorMessage.set('Error crítico conectando con el motor global de FastAPI y la base de datos.');
         this.isLoading.set(false);
       }
     });
+  }
+
+  public onLogout(): void {
+    this.logout.emit(true);
   }
 
   ngOnDestroy(): void {

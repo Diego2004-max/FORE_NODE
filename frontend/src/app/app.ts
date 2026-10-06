@@ -11,7 +11,7 @@ import { DashboardComponent } from './dashboard.component';
     @if (!isAuthenticated()) {
       <app-login (loggedIn)="isAuthenticated.set($event)" />
     } @else {
-      <app-dashboard />
+      <app-dashboard (logout)="isAuthenticated.set(false)" />
     }
   `
 })
