@@ -14,11 +14,14 @@ app = FastAPI(
     version="3.4.0"
 )
 
+# Configuración de CORS corregida y compatible con Vercel
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200", "http://127.0.0.1:4200"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -74,7 +77,6 @@ async def run_matching_engine(
         predicted_kg = round(base_predicted * multiplier, 2)
 
         # Oferta real dinámica basada en inventarios cooperativos de la zona
-        # Simulamos fluctuación basada en la temperatura y el ID del producto
         available_supply = round(950.0 + (request.product_id * 180.0) - (rain * 3.5), 2)
         
         gap = round(predicted_kg - available_supply, 2)
