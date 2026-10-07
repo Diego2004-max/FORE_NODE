@@ -7,21 +7,21 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="flex items-center justify-center min-h-screen bg-slate-900 px-4">
-      <div class="w-full max-w-md p-8 bg-slate-800 border border-slate-700 rounded-3xl shadow-2xl">
+    <div class="flex items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900 px-4 transition-colors">
+      <div class="w-full max-w-md p-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl">
         <div class="flex items-center justify-center mb-6">
           <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-2xl shadow-xl">F</div>
         </div>
-        <h2 class="text-2xl font-extrabold text-center text-white mb-2">Forenode Enterprise</h2>
-        <p class="text-xs text-center text-slate-400 mb-6">Plataforma Global de Emparejamiento Agroindustrial con IA y Datos en Vivo</p>
+        <h2 class="text-2xl font-extrabold text-center text-slate-950 dark:text-white mb-2">Forenode Enterprise</h2>
+        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mb-6">Plataforma Global de Emparejamiento Agroindustrial con IA y Datos en Vivo</p>
         
         <div class="space-y-4">
           <div>
-            <label class="block text-xs font-bold text-slate-300 uppercase mb-2">Ingrese su cuenta de Google (Gmail)</label>
+            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase mb-2">Ingrese su cuenta de Google (Gmail)</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">✉️</span>
               <input type="email" [(ngModel)]="gmailInput" name="gmailInput" 
-                     class="w-full pl-11 pr-4 py-3.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none text-sm" 
+                     class="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-950 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-sm" 
                      placeholder="tu.nombre&#64;gmail.com">
             </div>
           </div>

@@ -27,17 +27,17 @@ export class DashboardComponent implements OnDestroy {
   public logout = output<boolean>();
 
   public regions: RegionNode[] = [
-    { name: 'Pasto (Zona Andina / Acopio Central)', country: 'Colombia', lat: 1.2136, lon: -77.2811 },
-    { name: 'Ipiales (Frontera / Corredor Sur)', country: 'Colombia', lat: 0.8248, lon: -77.5846 },
-    { name: 'Túquerres (Meseta / Zona Papa y Leche)', country: 'Colombia', lat: 1.0844, lon: -77.6236 },
-    { name: 'La Unión (Norte de Nariño / Frutales)', country: 'Colombia', lat: 1.6058, lon: -77.1331 },
-    { name: 'Buesaco (Cañón del Juanambú / Café)', country: 'Colombia', lat: 1.3703, lon: -77.1583 }
+    { name: 'Pasto', country: 'Colombia', lat: 1.2136, lon: -77.2811 },
+    { name: 'Ipiales', country: 'Colombia', lat: 0.8248, lon: -77.5846 },
+    { name: 'Túquerres', country: 'Colombia', lat: 1.0844, lon: -77.6236 },
+    { name: 'La Unión', country: 'Colombia', lat: 1.6058, lon: -77.1331 },
+    { name: 'Buesaco', country: 'Colombia', lat: 1.3703, lon: -77.1583 }
   ];
 
   public crops: CropProduct[] = [
     { id: 1, name: 'Café de Altura Arábigo' },
-    { id: 2, name: 'Papa Pastusa / Industrial' },
-    { id: 3, name: 'Lulo Andino Orgánico' },
+    { id: 2, name: 'Papa Pastusa' },
+    { id: 3, name: 'Lulo Andino' },
     { id: 4, name: 'Quinoa Real de Nariño' }
   ];
 
@@ -48,10 +48,10 @@ export class DashboardComponent implements OnDestroy {
   public workerInsights = signal<any>(null);
   public isLoading = signal<boolean>(false);
   public errorMessage = signal<string | null>(null);
-  public isDarkMode = signal<boolean>(true);
+  public isDarkMode = signal<boolean>(false);
 
   constructor() {
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('dark');
     if (typeof Worker !== 'undefined') {
       try {
         this.worker = new Worker(new URL('./dashboard.worker', import.meta.url), { type: 'module' });
