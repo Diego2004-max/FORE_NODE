@@ -28,7 +28,7 @@ export interface MatchingResponse {
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8000/api/v1/matching/engine';
+  private readonly API_URL = 'https://forenode-backend.onrender.com/api/v1/matching/engine';
 
   runMatchingEngine(payload: MatchingRequest): Observable<MatchingResponse> {
     return this.http.post<MatchingResponse>(this.API_URL, payload);
